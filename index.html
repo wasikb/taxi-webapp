@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Такси</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #1a1a2e);
+            color: var(--tg-theme-text-color, #fff);
+            min-height: 100vh;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+        .header { text-align: center; padding: 16px 0 8px; }
+        .header h1 { font-size: 22px; margin-bottom: 4px; }
+        .header p { color: var(--tg-theme-hint-color, #888); font-size: 13px; }
+        .car-icon { text-align: center; font-size: 56px; margin: 12px 0; }
+        .input-group { margin-bottom: 12px; }
+        .input-group label {
+            display: block; font-size: 12px;
+            color: var(--tg-theme-hint_color, #888);
+            margin-bottom: 5px; padding-left: 4px;
+        }
+        .input-group input {
+            width: 100%; padding: 11px 14px; border-radius: 10px;
+            border: 1.5px solid var(--tg-theme-secondary-bg-color, #2a2a4a);
+            background: var(--tg-theme-secondary-bg-color, #16213e);
+            color: var(--tg-theme-text-color, #fff);
+            font-size: 14px; outline: none; transition: border 0.2s;
+        }
+        .input-group input:focus { border-color: var(--tg-theme-button-color, #e94560); }
+        .input-group input::placeholder { color: var(--tg-theme-hint-color, #555); }
+        .section-title {
+            font-size: 13px; color: var(--tg-theme-hint-color, #888);
+            margin: 14px 0 8px; padding-left: 4px;
+        }
+        .tariffs { display: flex; gap: 8px; margin-bottom: 14px; }
+        .tariff-card {
+            flex: 1; padding: 12px 8px; border-radius: 10px;
+            border: 2px solid var(--tg-theme-secondary-bg-color, #2a2a4a);
+            background: var(--tg-theme-secondary-bg-color, #16213e);
+            text-align: center; cursor: pointer; transition: all 0.2s;
+        }
+        .tariff-card.active {
+            border-color: var(--tg-theme-button-color, #e94560);
+            background: rgba(233, 69, 96, 0.12);
+        }
+        .tariff-card .emoji { font-size: 24px; margin-bottom: 4px; }
+        .tariff-card .name { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+        .tariff-card .price { font-size: 11px; color: var(--tg-theme-hint-color, #888); }
+        .options { display: flex; gap: 8px; margin-bottom: 14px; }
+        .option-card {
+            flex: 1; padding: 10px; border-radius: 10px;
+            background: var(--tg-theme-secondary-bg-color, #16213e);
+            text-align: center;
+        }
+        .option-card label {
+            font-size: 11px; color: var(--tg-theme-hint-color, #888);
+            display: block; margin-bottom: 6px;
+        }
+        .counter { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .counter button {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: none; background: var(--tg-theme-button-color, #e94560);
+            color: #fff; font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .counter span { font-size: 16px; font-weight: 600; min-width: 20px; }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+        .toggle-row span { font-size: 13px; }
+        .toggle {
+            width: 44px; height: 24px; border-radius: 12px;
+            background: var(--tg-theme-secondary-bg-color, #2a2a4a);
+            position: relative; cursor: pointer; transition: background 0.2s;
+        }
+        .toggle.active { background: var(--tg-theme-button-color, #e94560); }
+        .toggle::after {
+            content: ""; position: absolute;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #fff; top: 2px; left: 2px;
+            transition: transform 0.2s;
+        }
+        .toggle.active::after { transform: translateX(20px); }
+        .price-section {
+            background: var(--tg-theme-secondary-bg-color, #16213e);
+            border-radius: 10px; padding: 14px;
+            text-align: center; margin-top: 8px;
+        }
+        .price-section .stars { font-size: 24px; font-weight: 700; }
+        .price-section .rubles { font-size: 13px; color: var(--tg-theme-hint-color, #888); margin-top: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚕 Такси</h1>
+        <p>Быстрая поездка с комфортом</p>
+    </div>
+    <div class="car-icon">🚖</div>
+    <div class="input-group">
+        <label>📍 Откуда</label>
+        <input type="text" id="from" placeholder="Улица, дом...">
+    </div>
+    <div class="input-group">
+        <label>🏁 Куда</label>
+        <input type="text" id="to" placeholder="Улица, дом...">
+    </div>
+    <div class="section-title">Тариф</div>
+    <div class="tariffs">
+        <div class="tariff-card active" data-tariff="within_city" data-price="200">
+            <div class="emoji">🏙</div>
+            <div class="name">По городу</div>
+            <div class="price">200 ⭐</div>
+        </div>
+        <div class="tariff-card" data-tariff="airport" data-price="500">
+            <div class="emoji">✈️</div>
+            <div class="name">Аэропорт</div>
+            <div class="price">500 ⭐</div>
+        </div>
+        <div class="tariff-card" data-tariff="suburb" data-price="350">
+            <div class="emoji">🌲</div>
+            <div class="name">Пригород</div>
+            <div class="price">350 ⭐</div>
+        </div>
+    </div>
+    <div class="options">
+        <div class="option-card">
+            <label>Пассажиры</label>
+            <div class="counter">
+                <button onclick="changePass(-1)">−</button>
+                <span id="passCount">1</span>
+                <button onclick="changePass(1)">+</button>
+            </div>
+        </div>
+        <div class="option-card">
+            <label>Багаж</label>
+            <div class="toggle" id="luggageToggle" onclick="toggleLuggage()"></div>
+        </div>
+    </div>
+    <div class="price-section">
+        <div class="stars" id="priceStars">200 ⭐</div>
+        <div class="rubles" id="priceRub">≈ 200 ₽</div>
+    </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        let tariff = "within_city";
+        let price = 200;
+        let passengers = 1;
+        let luggage = false;
+        const PRICES = { within_city: 200, airport: 500, suburb: 350 };
+        document.querySelectorAll(".tariff-card").forEach(card => {
+            card.addEventListener("click", () => {
+                document.querySelectorAll(".tariff-card").forEach(c => c.classList.remove("active"));
+                card.classList.add("active");
+                tariff = card.dataset.tariff;
+                price = parseInt(card.dataset.price);
+                updateUI();
+            });
+        });
+        function changePass(d) {
+            passengers = Math.max(1, Math.min(4, passengers + d));
+            document.getElementById("passCount").textContent = passengers;
+        }
+        function toggleLuggage() {
+            luggage = !luggage;
+            document.getElementById("luggageToggle").classList.toggle("active");
+        }
+        function updateUI() {
+            document.getElementById("priceStars").textContent = price + " ⭐";
+            document.getElementById("priceRub").textContent = "≈ " + price + " ₽";
+            tg.MainButton.text = "🚖 Заказать за " + price + " ⭐";
+        }
+        tg.MainButton.text = "🚖 Заказать за 200 ⭐";
+        tg.MainButton.color = "#e94560";
+        tg.MainButton.show();
+        tg.MainButton.onClick(() => {
+            const from = document.getElementById("from").value.trim();
+            const to = document.getElementById("to").value.trim();
+            if (!from) { tg.showAlert("Укажи адрес подачи!"); return; }
+            tg.sendData(JSON.stringify({ tariff, price, from, to, passengers, luggage }));
+        });
+    </script>
+</body>
+</html>
